@@ -2,9 +2,9 @@
 Making MTM savings defensible: regression to the mean, engagement selection,
 and a matched difference-in-differences estimator.
 
-All data here is SIMULATED. The point is not the numbers; it is that a naive
-pre/post comparison on engaged high-risk members produces large "savings"
-even when the program does nothing, and that a propensity-matched
+All data here is SIMULATED. The exact numbers matter less than the pattern:
+a naive pre/post comparison on engaged high-risk members produces large
+"savings" even when the program does nothing, and a propensity-matched
 difference-in-differences design recovers the true effect.
 
 Author: Faridoon Farahi
@@ -29,12 +29,11 @@ def simulate_population(
     """
     Two 12-month periods (pre, post). Each member has a persistent underlying
     risk (chronic burden) plus a large transient shock each period. Annual cost
-    is heavy-tailed (log-normal), which is what real claims look like.
+    is heavy-tailed (log-normal), like real claims.
 
-    Program targeting: the plan identifies members using a risk score that is
-    computed on PRE-period utilization. Members who look expensive in the pre
-    period are targeted. Only some targeted members engage, and engagement
-    itself is correlated with member characteristics.
+    Targeting: the plan scores members on PRE-period utilization and targets
+    the ones who look expensive in the pre period. Only some targeted members
+    engage, and engagement is correlated with member characteristics.
     """
     rng = np.random.default_rng(seed)
 
@@ -61,12 +60,12 @@ def simulate_population(
     cost_pre = np.exp(base_log_cost + latent + shock_pre)
 
     # Plan targets members whose PRE cost lands in the top decile (a common
-    # "high-risk" rule). Risk score = pre cost + noise from an imperfect model.
+    # "high-risk" rule). Risk score is pre cost plus noise from an imperfect model.
     risk_score = np.log(cost_pre) + rng.normal(0, 0.2, n)
     targeted = risk_score >= np.quantile(risk_score, 0.90)
 
-    # Engagement among targeted members is not random: more meds, lower
-    # frailty and non-dual members engage more (they answer the phone).
+    # Engagement among targeted members depends on who they are: members with
+    # more meds, lower frailty and no dual status engage more (they answer the phone).
     engage_logit = -0.4 + 0.06 * n_meds - 0.35 * frailty - 0.3 * dual_eligible
     engaged = targeted & (rng.random(n) < 1 / (1 + np.exp(-engage_logit)))
 
@@ -94,15 +93,15 @@ def simulate_population(
 
 
 # ----------------------------------------------------------------------------
-# 2. The naive estimator everyone reports
+# 2. Naive estimator: pre/post on engaged members
 # ----------------------------------------------------------------------------
 def naive_pre_post(df: pd.DataFrame) -> dict:
     """Mean cost change among ENGAGED members only. This is what
     'savings per engaged member per year' usually means."""
-    e = df[df.engaged == 1]
-    pre, post = e.cost_pre.mean(), e.cost_post.mean()
+    engaged_members = df[df.engaged == 1]
+    pre, post = engaged_members.cost_pre.mean(), engaged_members.cost_post.mean()
     return dict(
-        n_engaged=len(e),
+        n_engaged=len(engaged_members),
         mean_cost_pre=pre,
         mean_cost_post=post,
         savings_pmpy=pre - post,
@@ -121,9 +120,9 @@ def propensity_match(
 ) -> pd.DataFrame:
     """
     1:1 nearest-neighbour matching on the propensity to engage, with a caliper.
-    Comparison pool = members who were NOT engaged. Because pre-period cost is
-    in the covariate list, matched controls share the same 'looked expensive
-    last year' property, which is what neutralises regression to the mean.
+    The comparison pool is members who were NOT engaged. Log pre-period cost is
+    added to the covariates, so matched controls also looked expensive last
+    year. That neutralises regression to the mean.
     """
     X = df[covariates].copy()
     X["log_cost_pre"] = np.log(df.cost_pre)
@@ -146,15 +145,17 @@ def propensity_match(
 
 
 def balance_table(matched: pd.DataFrame, covariates: list[str]) -> pd.DataFrame:
-    """Standardised mean differences before/after matching. |SMD| < 0.1 is the
-    usual 'balanced' threshold an actuary or HEOR reviewer will look for."""
+    """Standardised mean differences between engaged and control members in the
+    matched sample. |SMD| < 0.1 is the usual 'balanced' threshold an actuary or
+    HEOR reviewer will look for."""
     rows = []
-    for c in covariates + ["cost_pre"]:
-        t = matched.loc[matched.engaged == 1, c]
-        k = matched.loc[matched.engaged == 0, c]
-        pooled_sd = np.sqrt((t.var() + k.var()) / 2)
-        rows.append(dict(covariate=c, treated_mean=t.mean(), control_mean=k.mean(),
-                         smd=(t.mean() - k.mean()) / pooled_sd))
+    for cov in covariates + ["cost_pre"]:
+        treated_vals = matched.loc[matched.engaged == 1, cov]
+        control_vals = matched.loc[matched.engaged == 0, cov]
+        pooled_sd = np.sqrt((treated_vals.var() + control_vals.var()) / 2)
+        rows.append(dict(covariate=cov, treated_mean=treated_vals.mean(),
+                         control_mean=control_vals.mean(),
+                         smd=(treated_vals.mean() - control_vals.mean()) / pooled_sd))
     return pd.DataFrame(rows)
 
 
@@ -162,9 +163,9 @@ def did_estimate(matched: pd.DataFrame) -> dict:
     """
     Difference-in-differences on log cost. With two periods and member fixed
     effects this is identical to regressing each member's pre->post change in
-    log cost on the treatment indicator, so we estimate it that way (no
-    rank-deficiency from thousands of member dummies). Cluster-robust SEs by
-    matched pair.
+    log cost on the treatment indicator. We estimate it that way to avoid
+    rank deficiency from thousands of member dummies. SEs are cluster-robust
+    by matched pair.
     """
     m = matched.assign(dlog=np.log(matched.cost_post) - np.log(matched.cost_pre))
     model = smf.ols("dlog ~ engaged", data=m).fit(
@@ -190,7 +191,7 @@ def dollar_savings_pmpy(matched: pd.DataFrame, did_pct: float) -> float:
 
 
 # ----------------------------------------------------------------------------
-# 4. Placebo: run the whole pipeline on a world with ZERO true effect
+# 4. Full pipeline for one true effect (true_effect=0 is the placebo run)
 # ----------------------------------------------------------------------------
 def run_pipeline(true_effect: float, covariates: list[str], seed: int = 42) -> dict:
     df = simulate_population(true_effect=true_effect, seed=seed)
@@ -213,14 +214,14 @@ COVARIATES = ["age", "n_chronic", "n_meds", "dual_eligible", "frailty"]
 
 
 def monte_carlo(true_effect: float, covariates: list[str], n_sims: int = 30, n: int = 30_000) -> pd.DataFrame:
-    """Repeat the whole pipeline over many simulated populations to show the
+    """Repeat the pipeline over many simulated populations to show that the
     naive estimator is biased and the matched DiD is centred on the truth."""
     rows = []
-    for s in range(n_sims):
-        df = simulate_population(n=n, true_effect=true_effect, seed=1000 + s)
+    for sim in range(n_sims):
+        df = simulate_population(n=n, true_effect=true_effect, seed=1000 + sim)
         naive = naive_pre_post(df)["pct_change"]
         did = did_estimate(propensity_match(df, covariates))["did_pct"]
-        rows.append(dict(sim=s, naive_pct=naive, did_pct=did))
+        rows.append(dict(sim=sim, naive_pct=naive, did_pct=did))
     return pd.DataFrame(rows)
 
 if __name__ == "__main__":

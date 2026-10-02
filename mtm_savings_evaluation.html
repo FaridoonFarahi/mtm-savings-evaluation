@@ -7802,15 +7802,15 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Making-MTM-Savings-Defensible">Making MTM Savings Defensible<a class="anchor-link" href="#Making-MTM-Savings-Defensible">¶</a></h1><h3 id="Regression-to-the-mean,-engagement-selection,-and-a-matched-difference-in-differences-estimator">Regression to the mean, engagement selection, and a matched difference-in-differences estimator<a class="anchor-link" href="#Regression-to-the-mean,-engagement-selection,-and-a-matched-difference-in-differences-estimator">¶</a></h3><p><strong>Author:</strong> Faridoon Farahi  |  <strong>Data:</strong> fully simulated (no PHI, no client data)</p>
+<h1 id="Making-MTM-savings-defensible">Making MTM savings defensible<a class="anchor-link" href="#Making-MTM-savings-defensible">¶</a></h1><h3 id="Regression-to-the-mean,-engagement-selection,-and-a-matched-difference-in-differences-estimator">Regression to the mean, engagement selection, and a matched difference-in-differences estimator<a class="anchor-link" href="#Regression-to-the-mean,-engagement-selection,-and-a-matched-difference-in-differences-estimator">¶</a></h3><p>Author: Faridoon Farahi. Data: fully simulated (no PHI, no client data).</p>
 <p>Medication therapy management (MTM) and medication-optimization programs usually report outcomes the same way:
 <em>"$X saved per engaged member per year"</em> or <em>"Y% reduction in total cost of care among members who received interventions."</em></p>
-<p>Those are <strong>pre/post comparisons on the engaged, high-risk subgroup</strong>. When a contract moves to value-based terms, the client's actuary asks two questions:</p>
+<p>Those are pre/post comparisons on the engaged, high-risk subgroup. When a contract moves to value-based terms, the client's actuary asks two questions:</p>
 <ol>
-<li><strong>Regression to the mean.</strong> Members were selected <em>because</em> they were expensive last year. Some of that was bad luck, and bad luck doesn't repeat. How much of the "savings" would have happened with no program at all?</li>
-<li><strong>Engagement selection.</strong> Members who pick up the phone differ from those who don't. Is the engaged group's improvement caused by the program, or by whatever made them engage?</li>
+<li>Regression to the mean. Members were selected <em>because</em> they were expensive last year. Some of that was bad luck, and bad luck doesn't repeat. How much of the "savings" would have happened with no program at all?</li>
+<li>Engagement selection. Members who pick up the phone differ from those who don't. Is the engaged group's improvement caused by the program, or by whatever made them engage?</li>
 </ol>
-<p>This notebook shows, on simulated Medicare-like data, that a naive pre/post produces large "savings" <strong>even when the program does nothing</strong>, and that a <strong>propensity-matched difference-in-differences (DiD)</strong> design recovers the true effect. It ends with the checklist I would want in hand before putting a savings number in front of a plan's finance team.</p>
+<p>On simulated Medicare-like data, this notebook shows that a naive pre/post produces large "savings" even when the program does nothing, and that a propensity-matched difference-in-differences (DiD) design recovers the true effect. It ends with the checklist I would want in hand before putting a savings number in front of a plan's finance team.</p>
 </div>
 </div>
 </div>
@@ -7839,9 +7839,9 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-Simulated-plan-population">1. Simulated plan population<a class="anchor-link" href="#1.-Simulated-plan-population">¶</a></h2><p>80,000 members, two 12-month periods. Each member has a <strong>persistent</strong> risk (age, chronic conditions, medication count, dual eligibility, frailty) plus a <strong>transient</strong> shock each year. Annual cost is log-normal, which is what real claims look like: a long right tail driven by hospitalizations.</p>
-<p>The plan targets the <strong>top 10% by a pre-period risk score</strong> (built mostly from last year's cost — a very common rule). Among targeted members, engagement is not random: members on more medications, less frail, and non-dual are more likely to engage.</p>
-<p>We start with a world where the program has <strong>zero true effect</strong>. Any "savings" we find are an artifact.</p>
+<h2 id="1.-Simulated-plan-population">1. Simulated plan population<a class="anchor-link" href="#1.-Simulated-plan-population">¶</a></h2><p>80,000 members, two 12-month periods. Each member has a persistent risk (age, chronic conditions, medication count, dual eligibility, frailty) plus a transient shock each year. Annual cost is log-normal, like real claims: a long right tail driven by hospitalizations.</p>
+<p>The plan targets the top 10% by a pre-period risk score, built mostly from last year's cost (a very common rule). Among targeted members, engagement depends on who they are: members on more medications, less frail, and non-dual are more likely to engage.</p>
+<p>We start with a world where the program has zero true effect, so any "savings" we find are an artifact.</p>
 </div>
 </div>
 </div>
@@ -8050,7 +8050,7 @@ True program effect in this simulation: 0%
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>A <strong>35% cost reduction and roughly $28K of "savings" per engaged member</strong> — with a program that did nothing. This is regression to the mean: members were selected on a noisy high value, and the noise didn't repeat.</p>
+<p>The program did nothing, yet engaged members show a 35% cost reduction and roughly $28K of "savings" each. This is regression to the mean: members were selected on a noisy high value, and the noise didn't repeat.</p>
 <p>The same mechanism produces the hospitalization and ED-visit reductions programs report, because those events are exactly what made the pre-period cost spike.</p>
 </div>
 </div>
@@ -8062,8 +8062,8 @@ True program effect in this simulation: 0%
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-A-defensible-design:-propensity-matched-difference-in-differences">3. A defensible design: propensity-matched difference-in-differences<a class="anchor-link" href="#3.-A-defensible-design:-propensity-matched-difference-in-differences">¶</a></h2><p><strong>Comparison group.</strong> Members who did <em>not</em> engage, matched 1:1 to engaged members on the propensity to engage. The propensity model includes <strong>pre-period cost</strong>, so each matched control also "looked expensive last year" — that neutralises regression to the mean. The other covariates address engagement selection.</p>
-<p><strong>Estimator.</strong> Difference-in-differences on log cost: (engaged post − engaged pre) − (control post − control pre). With two periods this is the same as regressing each member's change in log cost on treatment. Standard errors clustered by matched pair.</p>
+<h2 id="3.-Propensity-matched-difference-in-differences">3. Propensity-matched difference-in-differences<a class="anchor-link" href="#3.-Propensity-matched-difference-in-differences">¶</a></h2><p>Comparison group: members who did <em>not</em> engage, matched 1:1 to engaged members on the propensity to engage. The propensity model includes pre-period cost, so each matched control also "looked expensive last year". That neutralises regression to the mean. The other covariates address engagement selection.</p>
+<p>Estimator: difference-in-differences on log cost, (engaged post − engaged pre) − (control post − control pre). With two periods this is the same as regressing each member's change in log cost on treatment. Standard errors are clustered by matched pair.</p>
 <p>First, the balance check an actuary or HEOR reviewer will ask for: standardised mean differences after matching should be within ±0.10.</p>
 </div>
 </div>
@@ -8201,7 +8201,7 @@ True effect: 0%  -&gt;  the matched DiD correctly finds nothing.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-Now-give-the-program-a-real-effect">4. Now give the program a real effect<a class="anchor-link" href="#4.-Now-give-the-program-a-real-effect">¶</a></h2><p>Same population, but engaged members' post-period cost is <strong>10% lower</strong> because of the program. Does each method find it?</p>
+<h2 id="4.-Now-give-the-program-a-real-effect">4. Now give the program a real effect<a class="anchor-link" href="#4.-Now-give-the-program-a-real-effect">¶</a></h2><p>Same population, but engaged members' post-period cost is 10% lower because of the program. Does each method find it?</p>
 </div>
 </div>
 </div>
@@ -8290,8 +8290,8 @@ True effect: 0%  -&gt;  the matched DiD correctly finds nothing.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>The naive number barely moves between "no effect" and "real 10% effect" — it is dominated by selection, not by the program. The matched DiD lands on the truth in both cases.</p>
-<p><strong>The dollar gap matters for contracts.</strong> In the real-effect world, the naive method claims ~$33K PMPY; the defensible method finds ~$6.5K PMPY. The second number is smaller, but it is the one that survives an audit — and it is the one you can put a shared-savings percentage on.</p>
+<p>The naive number barely moves between "no effect" and "real 10% effect" because selection dominates it. The matched DiD lands on the truth in both cases.</p>
+<p>The dollar gap matters for contracts. In the real-effect world, the naive method claims ~$33K PMPY and the matched method finds ~$6.5K PMPY. The second number is smaller, but it holds up in an audit, and it is the one you can put a shared-savings percentage on.</p>
 </div>
 </div>
 </div>
@@ -8355,14 +8355,14 @@ True effect: 0%  -&gt;  the matched DiD correctly finds nothing.
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="6.-What-I-would-want-in-hand-before-reporting-a-savings-number">6. What I would want in hand before reporting a savings number<a class="anchor-link" href="#6.-What-I-would-want-in-hand-before-reporting-a-savings-number">¶</a></h2><ol>
-<li><strong>A comparison group that was selected the same way.</strong> Matched non-engaged members from the same targeting rule, or a randomised/staggered rollout if the client will allow it. Never "engaged vs. everyone else."</li>
-<li><strong>Balance diagnostics.</strong> Standardised mean differences on risk score, prior cost, prior utilisation, chronic burden, dual status. All within ±0.10, shown in the deliverable.</li>
-<li><strong>Difference-in-differences, not pre/post.</strong> Report the DiD point estimate with a confidence interval, on log cost (heavy tails) and separately on the utilisation counts the client cares about (admits, ED visits).</li>
-<li><strong>A placebo test.</strong> Run the same design on a pre-program year pair. If it "finds savings" where there was no program, the design is broken.</li>
-<li><strong>Sensitivity to the caliper and covariate set</strong>, and an intention-to-treat version (all <em>targeted</em> members, not just engaged) — that's the number the plan actually pays for.</li>
-<li><strong>A plain-English one-pager for the client's finance team</strong> that leads with the conservative estimate.</li>
+<li>A comparison group selected the same way: matched non-engaged members from the same targeting rule, or a randomised/staggered rollout if the client will allow it. Never "engaged vs. everyone else."</li>
+<li>Balance diagnostics: standardised mean differences on risk score, prior cost, prior utilisation, chronic burden and dual status, all within ±0.10 and shown in the deliverable.</li>
+<li>Difference-in-differences instead of pre/post. Report the DiD point estimate with a confidence interval, on log cost (heavy tails) and separately on the utilisation counts the client cares about (admits, ED visits).</li>
+<li>A placebo test. Run the same design on a pre-program year pair. If it "finds savings" where there was no program, the design is broken.</li>
+<li>Sensitivity to the caliper and covariate set, and an intention-to-treat version (all <em>targeted</em> members, not just engaged). That's the number the plan actually pays for.</li>
+<li>A plain-English one-pager for the client's finance team that leads with the conservative estimate.</li>
 </ol>
-<p>This is the discipline I applied for four years at Kaiser Permanente measuring operational program impact for finance and operations leaders, and it is the same discipline that lets a medication-optimization vendor sign value-based contracts with confidence.</p>
+<p>I used this approach for four years at Kaiser Permanente, measuring operational program impact for finance and operations leaders. The same approach lets a medication-optimization vendor sign value-based contracts with confidence.</p>
 </div>
 </div>
 </div>
